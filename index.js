@@ -15,7 +15,13 @@ app.get('/api/users', (req, res) => {
 
 //put, patch, delete, get by id concat into one common route
 app.route('/api/users/:id').patch((req, res) => {
-    return res.json("patch pending")
+    const Userid = parseInt(req.params.id, 10)
+    const userIndex = users.findIndex(user => user.id === Userid)
+    if (userIndex === -1){
+        res.status(404).json({"error": "user not found"})
+    }
+    Object.assign(users[userIndex], req.body)
+    return res.json({message: "user patched", user: users[userIndex]})
 }).delete((req, res) => {
 
     const Userid = parseInt(req.params.id, 10)
@@ -31,6 +37,14 @@ app.route('/api/users/:id').patch((req, res) => {
     const id = Number(req.params.id)
     const user = users.find((user) => user.id === id );
     return res.json(user)
+}).put((req, res) => {
+    const Userid = parseInt(req.params.id, 10)
+    const userIndex = users.findIndex(user => user.id === Userid)
+    if (userIndex === -1){
+        res.status(404).json({"error": "user not found"})
+    }
+    users[userIndex] = {...users[userIndex], ...req.body}
+    res.json({message: "user updated", user: users[userIndex]})
 })
 
 
