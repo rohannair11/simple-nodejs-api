@@ -6,14 +6,29 @@ const PORT = 8000
 
 //middleware
 app.use(express.json())
+app.use((req, res, next) => {
+    fs.appendFile('log.txt', `${Date.now()}: ${req.method}: ${req.path} \n`, (err, data) => {
+        next()
+    })
+})
 
 //get all users
 app.get('/api/users', (req, res) => {
     res.json(users)
 })
 
+//returns html
+app.get('/users', (req, res) => {
+    const template = `
+        <ul>
+            ${users.map(user => `<li>  ${user.first_name} </li>`).join("")}
+        </ul>
+    `
+    res.send(template)
+})
 
-//put, patch, delete, get by id concat into one common route
+
+//put, patch, delete, get
 app.route('/api/users/:id').patch((req, res) => {
     const Userid = parseInt(req.params.id, 10)
     const userIndex = users.findIndex(user => user.id === Userid)
@@ -34,10 +49,13 @@ app.route('/api/users/:id').patch((req, res) => {
 
 
 }).get((req, res) => {
+
     const id = Number(req.params.id)
     const user = users.find((user) => user.id === id );
     return res.json(user)
+
 }).put((req, res) => {
+
     const Userid = parseInt(req.params.id, 10)
     const userIndex = users.findIndex(user => user.id === Userid)
     if (userIndex === -1){
@@ -45,6 +63,7 @@ app.route('/api/users/:id').patch((req, res) => {
     }
     users[userIndex] = {...users[userIndex], ...req.body}
     res.json({message: "user updated", user: users[userIndex]})
+
 })
 
 
@@ -70,15 +89,7 @@ app.post('/api/users', (req, res) => {
 })
 
 
-//returns html
-app.get('/users', (req, res) => {
-    const template = `
-        <ul>
-            ${users.map(user => `<li>  ${user.first_name} </li>`).join("")}
-        </ul>
-    `
-    res.send(template)
-})
+
 
 
 app.listen(PORT, () => console.log(`server running on ${PORT} port`))
