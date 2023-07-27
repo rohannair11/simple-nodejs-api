@@ -3,6 +3,40 @@ import users from "./MOCK_DATA.json" assert { type: "json" };
 import fs from "fs"
 const app = express()
 const PORT = 8000
+import mongoose from "mongoose";
+
+//connect mongo
+mongoose.connect("mongodb://127.0.0.1:27017/node-js-api-tut").then(() => {
+    console.log("Mongo running");
+}).catch((err) => {
+    console.log("mongo error ", err);
+})
+
+//schema 
+const userSchema = new mongoose.Schema({
+    firstName: {
+        type: String, 
+        required: true, 
+    },
+    lastName: {
+        type: String, 
+    },
+    email: {
+        type: String, 
+        required: true,
+        unique: true, 
+    },
+    jobTitle: {
+        type: String,
+    },
+    gender: {
+        type: String, 
+    }
+})
+
+const User = mongoose.model('user', userSchema)
+
+
 
 //middleware
 app.use(express.json())
@@ -67,7 +101,7 @@ app.route('/api/users/:id').patch((req, res) => {
 })
 
 
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
     const {first_name, last_name, email, gender, job_title} = req.body
     
     const newUser = {
@@ -76,16 +110,19 @@ app.post('/api/users', (req, res) => {
         last_name, 
         email,
         gender,
-        job_title,
+        job_title
     }
 
-
-    users.push(newUser)
-    fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (err, data) => {
-        return res.json("success")
+    const result = await User.create({
+        firstName: first_name,
+        lastName: last_name,
+        email: email,
+        gender: gender, 
+        jobTitle: job_title
     })
 
-    res.status(201).json({ message: 'User added successfully!', user: newUser });
+    res.status(201).json({message: "created", user: result})
+
 })
 
 
